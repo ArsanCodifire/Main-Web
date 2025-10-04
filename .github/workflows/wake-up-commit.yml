@@ -1,0 +1,41 @@
+name: Scheduled UTC Update and Wake-Up
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  commit_update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Generate UTC Timestamp and File Content
+        id: timestamp
+        run: |
+          UTC_TIME=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
+          CONTENT="Updated at: $UTC_TIME"
+          echo "$CONTENT" > update.txt
+          echo "COMMIT_MESSAGE=🤖 [Automated Wake-up] Updated at $UTC_TIME" >> $GITHUB_OUTPUT
+
+      - name: Configure Git and Commit
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add update.txt
+          
+          if git log -1 --pretty=%B | grep -q "Automated Wake-up"; then
+            git commit --amend -m "${{ steps.timestamp.outputs.COMMIT_MESSAGE }}" --allow-empty
+          else
+            git commit -m "${{ steps.timestamp.outputs.COMMIT_MESSAGE }}"
+          fi
+          
+      - name: Push amended changes
+        run: git push origin main --force-with-lease
+        
