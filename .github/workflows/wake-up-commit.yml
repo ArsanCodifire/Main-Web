@@ -2,7 +2,7 @@ name: Scheduled UTC Update and Wake-Up
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/30 * * * *'  # <-- MODIFIED: Runs every 30 minutes
   workflow_dispatch:
 
 jobs:
@@ -16,26 +16,44 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Generate UTC Timestamp and File Content
+      - name: Generate Multi-Timezone File Content 🌍
         id: timestamp
         run: |
+          # Define Time Variables
           UTC_TIME=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
-          CONTENT="Updated at: $UTC_TIME"
-          echo "$CONTENT" > update.txt
-          echo "COMMIT_MESSAGE=🤖 [Automated Wake-up] Updated at $UTC_TIME" >> $GITHUB_OUTPUT
+          IST_TIME=$(TZ='Asia/Kolkata' date "+%Y-%m-%d %H:%M:%S IST")
+          EST_TIME=$(TZ='America/New_York' date "+%Y-%m-%d %H:%M:%S EST")
 
-      - name: Configure Git and Commit
+          # Create File Content
+          CONTENT="--- Timestamps ---\n"
+          CONTENT="${CONTENT}UTC: $UTC_TIME\n"
+          CONTENT="${CONTENT}IST: $IST_TIME\n"
+          CONTENT="${CONTENT}EST: $EST_TIME\n"
+          
+          # Write File and Output Commit Message
+          echo -e "$CONTENT" > update.txt
+          echo "COMMIT_MESSAGE=🤖 [Automated Wake-up] Updated times at $UTC_TIME" >> $GITHUB_OUTPUT
+
+      - name: Configure Git and Commit New Changes ✅
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git add update.txt
           
-          if git log -1 --pretty=%B | grep -q "Automated Wake-up"; then
-            git commit --amend -m "${{ steps.timestamp.outputs.COMMIT_MESSAGE }}" --allow-empty
+          # Check if the content of update.txt actually changed
+          if git diff-index --quiet HEAD; then
+            echo "No changes detected. Skipping commit."
           else
+            # New: Commit normally, creating a new commit ID every time.
             git commit -m "${{ steps.timestamp.outputs.COMMIT_MESSAGE }}"
           fi
           
-      - name: Push amended changes
-        run: git push origin main --force-with-lease
-        
+      - name: Push new commit
+        run: |
+          if git diff-index --quiet HEAD; then
+            echo "Skipping push as no commit was made."
+          else
+            # New: Standard push is used, which works reliably for new commits.
+            git push origin main
+          fi
+          
