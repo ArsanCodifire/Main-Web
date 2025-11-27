@@ -2,7 +2,7 @@ name: Scheduled UTC Update and Wake-Up
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # <-- MODIFIED: Runs every 30 minutes
+    - cron: '*/15 * * * *'  # <-- MODIFIED: Runs every 30 minutes
   workflow_dispatch:
 
 jobs:
