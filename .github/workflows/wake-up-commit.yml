@@ -35,4 +35,4 @@ jobs:
           # Commit with timestamp, ignore if no changes (should always be changes)
           git commit -m "${{ env.COMMIT_MSG }}" || exit 0
           # Push to main branch
-          git push origin HEAD:main      - name: Configure Git and Commit New Changes ✅
+          git push origin HEAD:main
