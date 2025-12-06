@@ -2,58 +2,37 @@ name: Scheduled UTC Update and Wake-Up
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # <-- MODIFIED: Runs every 30 minutes
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
   commit_update:
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Generate Multi-Timezone File Content 🌍
-        id: timestamp
+          # Small addition: ensure we're on the right branch
+          ref: main
+        
+      - name: Create timestamp file
         run: |
-          # Define Time Variables
-          UTC_TIME=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
-          IST_TIME=$(TZ='Asia/Kolkata' date "+%Y-%m-%d %H:%M:%S IST")
-          EST_TIME=$(TZ='America/New_York' date "+%Y-%m-%d %H:%M:%S EST")
-
-          # Create File Content
-          CONTENT="--- Timestamps ---\n"
-          CONTENT="${CONTENT}UTC: $UTC_TIME\n"
-          CONTENT="${CONTENT}IST: $IST_TIME\n"
-          CONTENT="${CONTENT}EST: $EST_TIME\n"
+          # 12-hour format, UTC time
+          UTC_TIME=$(date -u "+%Y-%m-%d %r UTC")
+          echo "Updated at: $UTC_TIME" > update.txt
+          echo "COMMIT_MSG=🤖 [Automated Wake-up] Updated at $UTC_TIME" >> $GITHUB_ENV
           
-          # Write File and Output Commit Message
-          echo -e "$CONTENT" > update.txt
-          echo "COMMIT_MESSAGE=🤖 [Automated Wake-up] Updated times at $UTC_TIME" >> $GITHUB_OUTPUT
-
-      - name: Configure Git and Commit New Changes ✅
+      - name: Setup git
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          git add update.txt
           
-          # Check if the content of update.txt actually changed
-          if git diff-index --quiet HEAD; then
-            echo "No changes detected. Skipping commit."
-          else
-            # New: Commit normally, creating a new commit ID every time.
-            git commit -m "${{ steps.timestamp.outputs.COMMIT_MESSAGE }}"
-          fi
-          
-      - name: Push new commit
+      - name: Commit and push
         run: |
-          if git diff-index --quiet HEAD; then
-            echo "Skipping push as no commit was made."
-          else
-            # New: Standard push is used, which works reliably for new commits.
-            git push origin main
-          fi
-          
+          git add update.txt
+          # Commit with timestamp, ignore if no changes (should always be changes)
+          git commit -m "${{ env.COMMIT_MSG }}" || exit 0
+          # Push to main branch
+          git push origin HEAD:main      - name: Configure Git and Commit New Changes ✅
