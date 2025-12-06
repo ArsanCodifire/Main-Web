@@ -14,15 +14,50 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # Small addition: ensure we're on the right branch
           ref: main
         
-      - name: Create timestamp file
+      - name: Create multi-timezone file
         run: |
-          # 12-hour format, UTC time
-          UTC_TIME=$(date -u "+%Y-%m-%d %r UTC")
-          echo "Updated at: $UTC_TIME" > update.txt
-          echo "COMMIT_MSG=🤖 [Automated Wake-up] Updated at $UTC_TIME" >> $GITHUB_ENV
+          # Generate timestamps for different timezones
+          UTC_TIME=$(TZ=UTC date "+%Y-%m-%d %r %Z")
+          IST_TIME=$(TZ=Asia/Kolkata date "+%Y-%m-%d %r %Z")
+          EST_TIME=$(TZ=America/New_York date "+%Y-%m-%d %r %Z")
+          PST_TIME=$(TZ=America/Los_Angeles date "+%Y-%m-%d %r %Z")
+          GMT_TIME=$(TZ=Europe/London date "+%Y-%m-%d %r %Z")
+          JST_TIME=$(TZ=Asia/Tokyo date "+%Y-%m-%d %r %Z")
+          AEST_TIME=$(TZ=Australia/Sydney date "+%Y-%m-%d %r %Z")
+          
+          # Create the update.txt with multiple timezones
+          cat > update.txt << EOF
+          🌐 Multi-TimeZone Update
+          ========================
+          
+          📍 UTC (Coordinated Universal Time):
+          Updated at: $UTC_TIME
+          
+          📍 IST (Indian Standard Time):
+          Updated at: $IST_TIME
+          
+          📍 EST (Eastern Standard Time):
+          Updated at: $EST_TIME
+          
+          📍 PST (Pacific Standard Time):
+          Updated at: $PST_TIME
+          
+          📍 GMT (Greenwich Mean Time):
+          Updated at: $GMT_TIME
+          
+          📍 JST (Japan Standard Time):
+          Updated at: $JST_TIME
+          
+          📍 AEST (Australian Eastern Time):
+          Updated at: $AEST_TIME
+          
+          ⏰ Next update in 15 minutes...
+          EOF
+          
+          # Store commit message
+          echo "COMMIT_MSG=🤖 [Multi-TimeZone Update] Refreshed at $UTC_TIME" >> $GITHUB_ENV
           
       - name: Setup git
         run: |
@@ -32,7 +67,5 @@ jobs:
       - name: Commit and push
         run: |
           git add update.txt
-          # Commit with timestamp, ignore if no changes (should always be changes)
           git commit -m "${{ env.COMMIT_MSG }}" || exit 0
-          # Push to main branch
           git push origin HEAD:main
