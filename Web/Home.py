@@ -6,6 +6,8 @@ st.set_page_config(
 )
 current_folder = os.path.dirname(os.path.abspath(__file__))
 local_image_path = os.path.join(current_folder, "pfp.jpg")
+github_url = "https://raw.githubusercontent.com/ArsanCodifire/Main-Web/main/Web/pfp.jpg"
+
 col1, col2 = st.columns(2)
 col1.title("Welcome")
 col1.write("Hello, I am Arsan Codifire!")
