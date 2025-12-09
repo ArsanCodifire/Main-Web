@@ -5,13 +5,12 @@ st.title("Welcome to the AI sector.")
     
 token=st.secrets["TOKEN"]
 def gen(prompt,mdl):
-    co = ai.Client(token)
-    response = co.generate(
+    co = ai.ClientV2(token)
+    response = co.chat(
         model=mdl,
-        prompt=prompt,
-        max_tokens=1000 
+        messages=[{"role": "user", "content": prompt}]
     )
-    return response.generations[0].text.strip()
+    return response
 
 mdl=st.selectbox("Models",["command-xlarge-nightly","command-medium-nightly"])
 if mdl=="command-xlarge-nightly":
