@@ -19,11 +19,3 @@ st.subheader("Here are some of my projects:")
 st.write("     1. Base64 Converter")
 st.write("     1. Auto-Clicker")
 st.sidebar.success("Choose a page above")
-
-
-
-
-
-
-
-
