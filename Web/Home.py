@@ -11,7 +11,10 @@ github_url = "https://raw.githubusercontent.com/ArsanCodifire/Main-Web/main/Web/
 col1, col2 = st.columns(2)
 col1.title("Welcome")
 col1.write("Hello, I am Arsan Codifire!")
-col2.image("pfp.jpg")
+if os.path.exists(local_image_path):
+    col2.image((local_image_path, caption="Profile Picture (Local)")
+else:
+    st.image(github_url, caption="Profile Picture (GitHub Backup)")
 st.subheader("Here are some of my projects:")  
 st.write("     1. Base64 Converter")
 st.write("     1. Auto-Clicker")
